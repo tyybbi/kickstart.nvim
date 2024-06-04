@@ -345,15 +345,6 @@ require('lazy').setup({
   },
 
   {
-    'kylechui/nvim-surround',
-    branch = 'main',
-    event = 'VeryLazy',
-    config = function()
-      require('nvim-surround').setup {}
-    end,
-  },
-
-  {
     'martineausimon/nvim-lilypond-suite',
     config = function()
       require('nvls').setup {
