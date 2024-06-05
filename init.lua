@@ -168,7 +168,7 @@ vim.opt.writebackup = false
 vim.opt.swapfile = false
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+vim.opt.scrolloff = 0
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
