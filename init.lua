@@ -87,8 +87,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
+vim.g.mapleader = ','
+vim.g.maplocalleader = ','
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
@@ -98,6 +98,9 @@ vim.g.have_nerd_font = false
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
+-- Change working directory by file automatically
+vim.opt.autochdir = true
+
 -- Make line numbers default
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -105,7 +108,10 @@ vim.opt.number = true
 -- vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
-vim.opt.mouse = 'a'
+vim.opt.mouse = 'r'
+
+-- Set default textwidth
+vim.o.textwidth = 80
 
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
@@ -153,8 +159,13 @@ vim.opt.inccommand = 'split'
 -- Show which line your cursor is on
 vim.opt.cursorline = true
 
+-- No extra files
+vim.opt.backup = false
+vim.opt.writebackup = false
+vim.opt.swapfile = false
+
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+vim.opt.scrolloff = 0
 
 -- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
 -- instead raise a dialog asking if you wish to save the current file(s)
@@ -166,7 +177,53 @@ vim.opt.confirm = true
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
+--vim.opt.hlsearch = false
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+
+vim.keymap.set('i', 'jk', '<esc>', { desc = 'Better Esc from Insert mode' })
+
+vim.keymap.set('n', '<C-n>', ':bnext<cr>', { desc = 'Switch to next buffer' })
+vim.keymap.set('n', '<C-p>', ':bprevious<cr>', { desc = 'Switch to previous buffer' })
+
+-- Remap for dealing with word wrap
+vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+
+vim.keymap.set('n', '<leader>ad', ':AnsibleDocSplit<cr><C-l>', { desc = 'Ansible-doc split horizontally' })
+vim.keymap.set('n', '<leader>av', ':AnsibleDocVSplit<cr><C-l>', { desc = 'Ansible-doc split vertically' })
+
+vim.keymap.set('n', '<space>', '<cmd>HopChar2<cr>', { desc = 'SPC and 2 chars to jump to a location' })
+
+vim.keymap.set('n', '<leader>mp', ':!pandoc -H $HOME/misc/b/deeplists.tex -o %:r.pdf %<cr>', { desc = 'Export current file to pdf using pandoc' })
+
+vim.keymap.set('i', '<leader>c', '```<cr>', { desc = 'Insert markdown code block starter/ender' })
+vim.keymap.set('n', '<leader>Ws', ':%s/\\s\\+$//g<cr>', { desc = 'Remove trailing whitespace' })
+
+-- Abbreviations
+vim.keymap.set('ia', 'xdate', '<c-r>=strftime("%Y-%m-%d %H:%M:%S")<cr>]<esc>2Bi[<esc>E', { desc = 'Insert current date and time' })
+vim.keymap.set('ia', 'xdays', '<c-r>=strftime("%Y-%m-%d")<cr>]<esc>Bi[<esc>E', { desc = 'Insert current date' })
+
+local custom_ft_group = vim.api.nvim_create_augroup('Custom FileType group', { clear = true })
+
+-- yaml.ansible aucmd
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'yaml, yml',
+  callback = function()
+    vim.o.filetype = 'yaml.ansible'
+  end,
+  desc = 'Set correct filetype for Ansible yaml files',
+  group = custom_ft_group,
+})
+
+-- zsh alias file aucmd
+vim.api.nvim_create_autocmd('BufRead', {
+  pattern = '.zaliases',
+  callback = function()
+    vim.o.filetype = 'sh'
+  end,
+  desc = 'Set correct filetype for my zsh alias file',
+  group = custom_ft_group,
+})
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -274,6 +331,82 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
     },
+  },
+
+  {
+    'ansible/ansible-language-server',
+    branch = 'main',
+  },
+
+  {
+    'redhat-developer/yaml-language-server',
+    branch = 'main',
+  },
+
+  {
+    -- Launch ansible-doc via keyword to a split window
+    'takelley1/ansible-doc.vim',
+    branch = 'main',
+  },
+
+  {
+    'phaazon/hop.nvim',
+    branch = 'v2',
+    config = function()
+      require('hop').setup { keys = 'etovxqpdygfblzhckisuran' }
+    end,
+  },
+
+  {
+    -- Makes netrw slicker
+    'tpope/vim-vinegar',
+    branch = 'master',
+  },
+
+  {
+    'martineausimon/nvim-lilypond-suite',
+    config = function()
+      require('nvls').setup {
+        -- edit config here (see "Customize default settings" in wiki)
+      }
+    end,
+  },
+
+  {
+    'ray-x/go.nvim',
+    dependencies = { -- optional packages
+      'ray-x/guihua.lua',
+      'neovim/nvim-lspconfig',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = function()
+      require('go').setup()
+    end,
+    event = { 'CmdlineEnter' },
+    ft = { 'go', 'gomod' },
+    build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
+  },
+
+  { 'dhruvasagar/vim-table-mode', branch = 'master' },
+
+  {
+    'nvim-orgmode/orgmode',
+    event = 'VeryLazy',
+    ft = { 'org' },
+    config = function()
+      -- Setup orgmode
+      require('orgmode').setup {
+        org_agenda_files = '~/misc/org/**/*',
+        org_default_notes_file = '~/misc/org/refile.org',
+      }
+
+      -- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
+      -- add ~org~ to ignore_install
+      -- require('nvim-treesitter.configs').setup({
+      --   ensure_installed = 'all',
+      --   ignore_install = { 'org' },
+      -- })
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
@@ -404,7 +537,12 @@ require('lazy').setup({
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
-        -- pickers = {}
+        pickers = {
+          find_files = {
+            hidden = true,
+          },
+        },
+
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -664,8 +802,9 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
+        ansiblels = {},
+        gopls = {},
+        pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -887,6 +1026,9 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
+
+      -- You can configure highlights by doing something like:
+      --vim.cmd.hi 'Comment gui=none'
     end,
   },
 
