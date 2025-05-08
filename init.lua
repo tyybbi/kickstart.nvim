@@ -172,12 +172,12 @@ vim.opt.scrolloff = 0
 -- See `:help 'confirm'`
 vim.opt.confirm = true
 
+--  No hls
+vim.opt.hlsearch = false
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
--- Clear highlights on search when pressing <Esc> in normal mode
---  See `:help hlsearch`
---vim.opt.hlsearch = false
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 vim.keymap.set('i', 'jk', '<esc>', { desc = 'Better Esc from Insert mode' })
